@@ -1,0 +1,45 @@
+% Finds the best combination of n items, such that the sum of the prices of these n items is closest to price
+% Will print out on screen n sets of items, selecting one item from each set will sum cloest to price
+
+function bestCombo(n, price)
+[i, a] = readData();
+
+% finds the n prices that are closest in sum to price
+x = bintprog(-a, a, price, ones(1, length(a)), n);
+
+% prints out the items mapped to that price
+for k = a(x==1)
+    i(k)
+end
+
+end
+
+% Reads in all the data into a dictionary mapping prices to items
+% (priceToItems)
+% and an array of allPrices
+function [priceToItems, allPrices] = readData()
+
+    priceToItems = containers.Map('KeyType', 'double', 'ValueType', 'char');
+    allPrices =[];
+    i = 1;
+    
+    % The number of pages read in can be easily changed
+    for pg = 1:2
+         [value, json] = parse_json(urlread(strcat('http://api.zappos.com/Search?limit=100&page=',num2str(pg),'&key=52ddafbe3ee659bad97fcce7c53592916a6bfd73')));
+         for j = 1:length(value{1}.results)
+             price = regexprep(value{1}.results{j}.price,'\$','');
+             price = regexprep(price,',','');
+             price = str2double(price);
+            allPrices(i) = price;
+            if isKey(priceToItems, price)
+                priceToItems(price) = [priceToItems(price) '; ' value{1}.results{j}.productName];
+            else
+                priceToItems(price) = value{1}.results{j}.productName;
+            end
+            i = i+1;
+         end
+    end
+
+
+
+end
